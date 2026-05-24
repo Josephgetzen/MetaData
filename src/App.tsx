@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Upload, FolderOpen, File, Image, Video, FileText, Trash2, 
+  Upload, FolderOpen, File as FileIcon, Image, Video, FileText, Trash2, 
   Settings, CheckCircle2, AlertCircle, MapPin, RotateCcw, 
   Layers, Download, Search, Plus, X, HardDrive, Info, 
   Calendar, User, Globe, Camera, Check, HelpCircle, RefreshCw
@@ -1104,7 +1104,7 @@ export default function App() {
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-zinc-950 text-zinc-500 space-y-4">
                   <div className="w-10 h-10 rounded bg-zinc-900 flex items-center justify-center text-zinc-400 border border-zinc-800">
-                    <File className="h-5 w-5 text-zinc-600" />
+                    <FileIcon className="h-5 w-5 text-zinc-600" />
                   </div>
                   <div>
                     <h3 className="text-xs font-mono tracking-wider text-zinc-400 uppercase">No file selected</h3>
