@@ -1,0 +1,6 @@
+{
+  "name": "Media Metadata Editor",
+  "description": "A fully functional browser-side metadata editor and stripper for image, video, and PDF containers.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
