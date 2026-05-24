@@ -154,7 +154,7 @@ export default function App() {
     if (typeFilter === 'images') return matchesSearch && ['jpg', 'jpeg', 'png', 'heic', 'webp'].includes(f.extension);
     if (typeFilter === 'videos') return matchesSearch && ['mp4', 'mkv', 'mov', 'avi'].includes(f.extension);
     if (typeFilter === 'pdfs') return matchesSearch && f.extension === 'pdf';
-    return matchesSearch && !['jpg', 'jpeg', 'png', 'heic', 'webp', 'mp4', 'mkv', 'pdf'].includes(f.extension);
+    return matchesSearch && !['jpg', 'jpeg', 'png', 'heic', 'webp', 'mp4', 'mkv', 'mov', 'avi', 'pdf'].includes(f.extension);
   });
 
   // Tag inputs modifying trigger
@@ -609,7 +609,7 @@ export default function App() {
                 Drag & drop files or directory payloads
               </h2>
               <p className="text-zinc-505 text-xs font-mono leading-relaxed text-zinc-500 max-w-sm mx-auto">
-                Processes metadata locally inside your sandboxed browser. No remote servers, absolute data isolation. Supports MKV, MP4, HEIC, JPEG, PNG, and PDF payloads.
+                Processes metadata locally inside your sandboxed browser. No remote servers, absolute data isolation. Supports MKV, MP4, MOV, HEIC, JPEG, PNG, and PDF payloads.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">

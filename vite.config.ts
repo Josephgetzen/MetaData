@@ -9,11 +9,8 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   base: '/MetaData/',
-  plugins: [
-    react(), 
-    tailwindcss(), // <-- Ensure this is properly closed and has a comma
-  ], 
-  resolve: { // <-- This should now parse correctly
+  plugins: [react(), tailwindcss()],
+  resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
     },

@@ -121,7 +121,7 @@ export async function extractMetadata(file: File, extension: string): Promise<Me
           result.dateCreated = d;
         }
       }
-    } else if (['mp4', 'heic'].includes(extension.toLowerCase())) {
+    } else if (['mp4', 'heic', 'mov'].includes(extension.toLowerCase())) {
       // Basic box crawler for MP4 metadata tags
       const view = new DataView(buffer);
       let offset = 0;
@@ -297,7 +297,7 @@ export async function stripAllMetadataBinary(file: File, extension: string): Pro
     return stripPNG(buffer, true);
   } else if (ext === 'pdf') {
     return stripPDF(buffer, true);
-  } else if (ext === 'mp4' || ext === 'heic') {
+  } else if (ext === 'mp4' || ext === 'heic' || ext === 'mov') {
     return stripMP4(buffer, true);
   } else if (ext === 'mkv') {
     return stripMKV(buffer, true);
@@ -316,7 +316,7 @@ export async function stripLocationAndTimeMetadataBinary(file: File, extension: 
     return stripPNG(buffer, false);
   } else if (ext === 'pdf') {
     return stripPDF(buffer, false);
-  } else if (ext === 'mp4' || ext === 'heic') {
+  } else if (ext === 'mp4' || ext === 'heic' || ext === 'mov') {
     return stripMP4(buffer, false);
   } else if (ext === 'mkv') {
     return stripMKV(buffer, false);
@@ -795,7 +795,7 @@ export async function applyMetadataEditsBinary(
     });
 
     return stringToArrayBuffer(updated);
-  } else if (ext === 'mp4' || ext === 'heic') {
+  } else if (ext === 'mp4' || ext === 'heic' || ext === 'mov') {
     // For MP4, we can write tags as ASCII patterns in free blocks, or insert standard udta/meta structures.
     // To support general cross-platform video tags properly, we can overwrite existing metadata chunks inside 'udta'
     // with modified text string buffers. Let's do a secure write by injecting XML structures or editing strings.
