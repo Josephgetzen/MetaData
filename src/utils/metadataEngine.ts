@@ -124,34 +124,47 @@ export async function extractMetadata(file: File, extension: string): Promise<Me
     } else if (['mp4', 'heic', 'mov'].includes(extension.toLowerCase())) {
       // Basic box crawler for MP4 metadata tags
       const view = new DataView(buffer);
-      let offset = 0;
       const readBox = (startOffset: number, endOffset: number) => {
         let i = startOffset;
         while (i < endOffset - 8) {
+          if (i + 8 > endOffset || i + 8 > buffer.byteLength) {
+            break;
+          }
           const length = view.getUint32(i);
           const type = String.fromCharCode(view.getUint8(i + 4), view.getUint8(i + 5), view.getUint8(i + 6), view.getUint8(i + 7));
-          if (length < 8) break;
+          if (length < 8 || i + length > endOffset || i + length > buffer.byteLength) {
+            break;
+          }
 
           if (['moov', 'udta', 'meta', 'ilst'].includes(type)) {
             // Recurse inside
             const headerSize = type === 'meta' ? 12 : 8; // meta has 4 extra null bytes of version/flags
-            readBox(i + headerSize, i + length);
+            if (i + headerSize < i + length) {
+              readBox(i + headerSize, i + length);
+            }
           } else {
             // These are direct atom properties in iTunes metadata style or others
             // Inside ilst, keys are starting with © like ©nam (title), ©ART (Artist), ©day (Date), ©xyz (Coordinates)
-            const parentType = String.fromCharCode(view.getUint8(i - 8), view.getUint8(i - 7), view.getUint8(i - 6), view.getUint8(i - 5));
             if (type.startsWith('\u00a9') || type === 'data' || type === 'xyz' || type === 'keyw') {
               // Try to find the inner 'data' box that contains actual string payload
               let innerOffset = i + 8;
               let foundString = '';
               while (innerOffset < i + length - 8) {
+                if (innerOffset + 8 > i + length || innerOffset + 8 > buffer.byteLength) {
+                  break;
+                }
                 const subLen = view.getUint32(innerOffset);
                 const subType = String.fromCharCode(view.getUint8(innerOffset + 4), view.getUint8(innerOffset + 5), view.getUint8(innerOffset + 6), view.getUint8(innerOffset + 7));
+                if (subLen < 8 || innerOffset + subLen > i + length || innerOffset + subLen > buffer.byteLength) {
+                  break;
+                }
                 if (subType === 'data') {
-                  const dataType = view.getUint32(innerOffset + 8); // e.g. 1 means UTF-8 string
-                  if (dataType === 1) {
-                    const textBytes = new Uint8Array(buffer, innerOffset + 16, subLen - 16);
-                    foundString = new TextDecoder().decode(textBytes);
+                  if (innerOffset + 12 <= buffer.byteLength) {
+                    const dataType = view.getUint32(innerOffset + 8); // e.g. 1 means UTF-8 string
+                    if (dataType === 1 && subLen >= 16) {
+                      const textBytes = new Uint8Array(buffer, innerOffset + 16, subLen - 16);
+                      foundString = new TextDecoder().decode(textBytes);
+                    }
                   }
                   break;
                 }
@@ -598,27 +611,29 @@ function stripMP4(buffer: ArrayBuffer, stripAll: boolean): ArrayBuffer {
   let offset = 0;
   while (offset < len - 24) {
     const boxLen = view.getUint32(offset);
-    if (boxLen < 8) break;
+    if (boxLen < 8 || offset + boxLen > len) break;
     const boxType = String.fromCharCode(arr[offset + 4], arr[offset + 5], arr[offset + 6], arr[offset + 7]);
 
     if (boxType === 'moov') {
       let sub = offset + 8;
-      const subEnd = offset + boxLen;
+      const subEnd = Math.min(len, offset + boxLen);
       while (sub < subEnd - 16) {
         const subLen = view.getUint32(sub);
-        if (subLen < 8) break;
+        if (subLen < 8 || sub + subLen > subEnd) break;
         const subType = String.fromCharCode(arr[sub + 4], arr[sub + 5], arr[sub + 6], arr[sub + 7]);
 
         if (subType === 'mvhd') {
-          const version = view.getUint8(sub + 8);
-          if (version === 0) {
-            // creation time (4 bytes), modification time (4 bytes) at offset + 12
-            view.setUint32(sub + 12, 0);
-            view.setUint32(sub + 16, 0);
-          } else if (version === 1) {
-            // creation time (8 bytes), modification time (8 bytes) at offset + 20
-            view.setBigUint64(sub + 20, 0n);
-            view.setBigUint64(sub + 28, 0n);
+          if (sub + 12 <= subEnd) {
+            const version = view.getUint8(sub + 8);
+            if (version === 0 && sub + 20 <= subEnd) {
+              // creation time (4 bytes), modification time (4 bytes) at offset + 12
+              view.setUint32(sub + 12, 0);
+              view.setUint32(sub + 16, 0);
+            } else if (version === 1 && sub + 36 <= subEnd) {
+              // creation time (8 bytes), modification time (8 bytes) at offset + 20
+              view.setBigUint64(sub + 20, 0n);
+              view.setBigUint64(sub + 28, 0n);
+            }
           }
         }
         sub += subLen;
